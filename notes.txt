@@ -1,0 +1,3 @@
+docker build -t pytorch-project .
+docker run -it --rm -e DISPLAY=$env:DISPLAY -e DEBUG=1 -v /tmp/.X11-unix:/tmp/.X11-unix -p 5680:5680 pytorch-project
+docker run -it --rm -e DISPLAY=$env:DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix -p 5680:5680 pytorch-project
