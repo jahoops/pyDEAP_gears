@@ -124,7 +124,7 @@ creator.create("Individual", list, fitness=creator.FitnessMax)
 toolbox = base.Toolbox()
 
 # Define the number of points for each shape (5 points per shape, total 10 points)
-POINTS_PER_SHAPE = 5
+POINTS_PER_SHAPE = 3
 TOTAL_POINTS = POINTS_PER_SHAPE * 2  # For two shapes
 
 # Define bounds for x and y coordinates
@@ -170,7 +170,19 @@ def get_world_vertices(shape):
     return verts
 
 # Create a static brown polygon (e.g., ramp)
-def create_brown_polygon(vertices, name="ramp"):
+def create_mirror_polygons(vertices):
+    # Create the first polygon with the given vertices
+    shape_1 = create_brown_polygon(vertices, "left bumper")
+    
+    # Create the mirrored vertices for the second polygon
+    mirrored_vertices = [(width - x, y) for x, y in vertices]
+    
+    # Create the second polygon with the mirrored vertices
+    shape_2 = create_brown_polygon(mirrored_vertices, "right bumper")
+    
+    return shape_1, shape_2
+
+def create_brown_polygon(vertices, name="none"):
     body = pymunk.Body(body_type=pymunk.Body.STATIC)
     body.position = (0, 0)
     body.name = name
@@ -244,11 +256,9 @@ def eval_shapes(individual, show_visualization=False, space=space):
     left_lift, left_lift_shape = create_lift(space, (200, height), 50, 10)
     right_lift, right_lift_shape = create_lift(space, (600, height), 50, 10) 
 
-    shape_1_points = [(individual[i], individual[i+1]) for i in range(0, 10, 2)]
-    shape_2_points = [(individual[i], individual[i+1]) for i in range(10, 20, 2)]
+    shape_vertices = [(individual[i], individual[i+1]) for i in range(0, 6, 2)]
 
-    shape_1 = create_brown_polygon(shape_1_points, "left bumper")
-    shape_2 = create_brown_polygon(shape_2_points, "right bumper")
+    shape_1, shape_2 = create_mirror_polygons(shape_vertices)
 
     # Variables to track performance
     performance = 0
@@ -281,7 +291,7 @@ def eval_shapes(individual, show_visualization=False, space=space):
             # Update the full display Surface to the screen
             pygame.display.flip()
             # Control the frame rate
-            clock.tick(240)
+            clock.tick(60)
         else:
             # Update the physics simulation with smaller sub-steps
             for _ in range(sub_steps):
@@ -316,18 +326,14 @@ def check_bounds(min_val, max_val):
             offspring = func(*args, **kwargs)
             for child in offspring:
                 # Constrain points for the first shape
-                for i in range(0, 10, 2):
+                for i in range(0, 3, 2):
                     child[i] = min(max(child[i], 200), 240)  # x between 200 and 220
-                    child[i+1] = min(max(child[i+1], 20), 80)  # y between 20 and 80
-                # Constrain points for the second shape
-                for i in range(10, 20, 2):
-                    child[i] = min(max(child[i], 560), 600)  # x between 580 and 600
                     child[i+1] = min(max(child[i+1], 20), 80)  # y between 20 and 80
             return offspring
         return wrapper
     return decorator
 
-VISUALIZE_BEST = False
+VISUALIZE_BEST = True
 
 for gen in range(ngen):
     print(f"Generation {gen}")
